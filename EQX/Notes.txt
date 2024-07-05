@@ -1,0 +1,4 @@
+﻿- install .NET 3.5 (required for RGiesecke.DllExport NuGet package)
+- target framework .NET 4.5.2
+- target X86
+- precede "[DllExport("", CallingConvention.Cdecl)]" before "MarshallAs" methods

@@ -10,7 +10,7 @@ namespace EQX
 {
     public class EQX
     {
-        private static string _Log = "";
+        private static string _Log;
         private static string _URL;
         private static string _U;
         private static string _P;
@@ -34,21 +34,19 @@ namespace EQX
             XmlDocument XMLDocument = new XmlDocument();
             XMLDocument.LoadXml(MiscData);
 
-            foreach (XmlNode selectNode in XMLDocument.SelectNodes("misc_data"))
+            foreach (XmlNode misc_data in XMLDocument.SelectNodes("misc_data"))
             {
-                _URL = selectNode["uri"].InnerText;
-
-                XmlElement XMLElement = selectNode["logfilename"];
-                if (XMLElement != null)
-                {
-                    _Log = XMLElement.InnerText;
-                    using (System.IO.File.CreateText(_Log));
-                }
+                _URL = misc_data["uri"].InnerText;
+                _Log = misc_data["logfilename"].InnerText;
             }
 
             try
             {
-                WriteToDebug("HelloWorld");
+                WriteToDebug("AUTHENTICATE --------------------------------------------------");
+                WriteToDebug(string.Format("_Log: {0}", (object) _Log));
+                WriteToDebug(string.Format("_URL: {0}", (object) _URL));
+                WriteToDebug(string.Format("_U: {0}", (object) _U));
+                WriteToDebug(string.Format("_P: {0}", (object) _P));
 
                 Code = 0;
             }
@@ -84,6 +82,9 @@ namespace EQX
 
                 FieldData += string.Format("</search_fields>{0}", (object)Environment.NewLine);
 
+                WriteToDebug("SEARCHFIELDS --------------------------------------------------");
+                WriteToDebug(string.Format("FieldData: {0}", (object) FieldData));
+
                 Code = 0;
             }
             catch (Exception ex)
@@ -97,12 +98,45 @@ namespace EQX
         [DllExport("SearchAudio", CallingConvention.Cdecl)]
         public static int SearchAudio([MarshalAs(UnmanagedType.LPWStr)] string SearchData, [MarshalAs(UnmanagedType.LPWStr)] out string SearchResults)
         {
+
             int Code = 0;
 
             SearchResults = "";
 
             try
             {
+                WriteToDebug("SEARCHAUDIO --------------------------------------------------");
+
+                XmlDocument XMLDocument = new XmlDocument();
+                XMLDocument.LoadXml(SearchData);
+                
+                foreach (XmlNode search_data in XMLDocument.SelectNodes("search_data"))
+                {
+                    string start_time = "";
+                    string end_time = "";
+
+                    start_time = search_data["start_time"].InnerText;
+                    end_time = search_data["end_time"].InnerText;
+
+                    WriteToDebug(string.Format("start_time: {0}", (object)start_time));
+                    WriteToDebug(string.Format("end_time: {0}", (object)end_time));
+
+                    XmlElement search_fields = (XmlElement)null;
+
+                    search_fields = search_data["search_fields"];
+
+                    if (search_fields != null)
+                    {
+                        foreach (XmlNode field in search_fields.ChildNodes)
+                        {
+                            string FieldName = field["name"].InnerText;
+                            string FieldValue = field["value"].InnerText;
+
+                            WriteToDebug(string.Format("{0}: {1}", (object) FieldName, (object) FieldValue));
+                        }
+                    }
+                }
+
                 string dstAddr = "1128";
                 string dstName = "CSPD Phone";
                 string endTime = "2024-06-25T15:58:57.303";
@@ -113,9 +147,6 @@ namespace EQX
                 string staTime = "2024-06-25T15:57:00.863";
 
                 SearchResults = string.Format("<search_results>{0}", (object)Environment.NewLine);
-
-                string start_time = staTime;
-                string end_time = endTime;
 
                 string destinationdevice = dstAddr;
                 string destinationuser = dstName;
@@ -130,8 +161,8 @@ namespace EQX
 
                 AudioData = string.Format("<audio>{0}", (object)Environment.NewLine);
 
-                AudioData += string.Format("<start_time>{0}</start_time>{1}", (object)start_time, (object)Environment.NewLine);
-                AudioData += string.Format("<end_time>{0}</end_time>{1}", (object)end_time, (object)Environment.NewLine);
+                AudioData += string.Format("<start_time>{0}</start_time>{1}", (object)staTime, (object)Environment.NewLine);
+                AudioData += string.Format("<end_time>{0}</end_time>{1}", (object)endTime, (object)Environment.NewLine);
 
                 AudioData += string.Format("<destinationdevice>{0}</destinationdevice>{1}", (object)destinationdevice, (object)Environment.NewLine);
                 AudioData += string.Format("<destinationuser>{0}</destinationuser>{1}", (object)destinationuser, (object)Environment.NewLine);
@@ -149,6 +180,9 @@ namespace EQX
                 SearchResults += AudioData;
 
                 SearchResults += string.Format("</search_results>{0}", (object)Environment.NewLine);
+
+                WriteToDebug(string.Format("SearchResults: {0}", (object) SearchResults));
+
                 Code = 1;
             }
             catch (Exception ex)
@@ -161,7 +195,26 @@ namespace EQX
         [DllExport("PlayAudio", CallingConvention.Cdecl)]
         public static int PlayAudio([MarshalAs(UnmanagedType.LPWStr)] string ID, [MarshalAs(UnmanagedType.LPWStr)] string MiscData, [MarshalAs(UnmanagedType.LPWStr)] out string URL)
         {
+            string StartPos = "";
+            string WinHandle = "";
+
+            XmlDocument XMLDocument = new XmlDocument();
+            XMLDocument.LoadXml(MiscData);
+
+            foreach (XmlNode misc_data in XMLDocument.SelectNodes("misc_data"))
+            {
+                StartPos = misc_data["startpos"].InnerText;
+                WinHandle = misc_data["winhandle"].InnerText;
+            }
+
+            WriteToDebug("PLAYAUDIO --------------------------------------------------"); 
+            WriteToDebug(string.Format("ID: {0}", (object) ID));
+            WriteToDebug(string.Format("StartPos: {0}", (object) StartPos));
+            WriteToDebug(string.Format("WinHandle: {0}", (object) WinHandle));
+
             URL = string.Format("{0}/ViewPoint/getfile.ashx?fileid={1}{2}", (object)_URL, (object)ID, (object)Environment.NewLine);
+
+            WriteToDebug(string.Format("URL: {0}", (object) URL));
 
             return 0;
         }
@@ -172,6 +225,7 @@ namespace EQX
 
             try
             {
+                WriteToDebug("TERMINATE --------------------------------------------------");
                 WriteToDebug(string.Format("Terminate result: {0}", (object)Code));
             }
             catch (Exception ex)
@@ -223,6 +277,7 @@ namespace EQX
         {
             if (string.IsNullOrEmpty(_Log))
                 return;
+
             using (StreamWriter streamWriter = System.IO.File.AppendText(_Log))
             {
                 streamWriter.WriteLine(string.Format("{0} {1}", (object)DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss:fff"), (object)Data));

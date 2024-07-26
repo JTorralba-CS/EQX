@@ -219,6 +219,7 @@ namespace EQX
             return 0;
         }
 
+        [DllExport("Terminate", CallingConvention.Cdecl)]
         public static int Terminate()
         {
             int Code = 0;

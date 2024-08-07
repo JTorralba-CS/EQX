@@ -198,6 +198,10 @@ namespace EQX
             string StartPos = "";
             string WinHandle = "";
 
+            string FilePath = ID.Length == 19 ? ID.Substring(0, 4) + "\\" + ID.Substring(4, 2) + "\\" + ID.Substring(6, 2) + "\\" + ID.Substring(8, 2) + "\\" + ID.Substring(10, 9) : "0000000000000000000";
+            string FileExtension = _URL.ToUpper().Contains("RECORDER02") ? "WAV" : "MP4";
+            string AudioFile = string.Format("{0}.{1}", (object) FilePath, (object)FileExtension);
+
             XmlDocument XMLDocument = new XmlDocument();
             XMLDocument.LoadXml(MiscData);
 
@@ -212,7 +216,7 @@ namespace EQX
             WriteToDebug(string.Format("StartPos: {0}", (object) StartPos));
             WriteToDebug(string.Format("WinHandle: {0}", (object) WinHandle));
 
-            URL = string.Format("{0}/ViewPoint/getfile.ashx?fileid={1}{2}", (object) _URL, (object) ID, (object) Environment.NewLine);
+            URL = _URL.ToUpper().Contains("RECORDER02") ? string.Format("{0}/ViewPoint/getfile.ashx?fileid={1}{2}", (object) _URL, (object) ID, (object) Environment.NewLine) : string.Format("{0}\\{1}{2}", (object) _URL, (object) AudioFile, (object)Environment.NewLine);
 
             WriteToDebug(string.Format("URL: {0}", (object) URL));
 
